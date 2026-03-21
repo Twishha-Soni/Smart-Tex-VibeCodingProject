@@ -56,10 +56,61 @@
 
             <button type="submit">Generate ✨</button>
         </form>
+
+        {% if parsed %}
         <div class="output">
-            <h2>Generated Output</h2>
-            <pre>{{ output }}</pre>
+            <div class="output-header">
+                <h2>📄 Generated Output</h2>
+                <a href="/download" class="download-btn">⬇ Download PDF</a>
+            </div>
+
+            {# --- Case 1: Sections were detected --- #}
+            {% if parsed.sections %}
+                <div class="sections-view">
+                    {% for section in parsed.sections %}
+                    <div class="section-block">
+                        <h3 class="section-title">{{ section.title }}</h3>
+                        <pre class="section-content">{{ section.content }}</pre>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="latex-block">
+                    <div class="latex-block-header">
+                        <h3>📋 Full LaTeX Code</h3>
+                        <button class="copy-btn" onclick="copyLatex(this)">⧉ Copy</button>
+                    </div>
+                    <pre class="latex-code">{{ parsed.latex_code }}</pre>
+                </div>
+
+            {# --- Case 2: No sections found, but we have clean LaTeX --- #}
+            {% elif parsed.latex_code %}
+                <div class="latex-block">
+                    <div class="latex-block-header">
+                        <h3>📋 LaTeX Code</h3>
+                        <button class="copy-btn" onclick="copyLatex(this)">⧉ Copy</button>
+                    </div>
+                    <pre class="latex-code">{{ parsed.latex_code }}</pre>
+                </div>
+
+            {# --- Case 3: Raw fallback --- #}
+            {% else %}
+                <pre class="raw-output">{{ parsed.raw }}</pre>
+            {% endif %}
+
         </div>
+        {% endif %}
+
     </div>
+
+<script>
+function copyLatex(btn) {
+    const pre = btn.closest('.latex-block').querySelector('.latex-code');
+    navigator.clipboard.writeText(pre.innerText).then(() => {
+        btn.textContent = '✅ Copied!';
+        setTimeout(() => btn.textContent = '⧉ Copy', 2000);
+    });
+}
+</script>
 </body>
 </html>

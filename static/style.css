@@ -5,8 +5,9 @@ body {
     background: #f0f4ff;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
     min-height: 100vh;
+    padding: 40px 16px;
 }
 
 .container {
@@ -15,7 +16,7 @@ body {
     border-radius: 16px;
     box-shadow: 0 4px 24px rgba(0,0,0,0.1);
     width: 100%;
-    max-width: 480px;
+    max-width: 860px;
 }
 
 h1 { font-size: 28px; color: #2d2d2d; margin-bottom: 4px; }
@@ -52,19 +53,126 @@ button {
 
 button:hover { background: #3a56d4; }
 
+/* ── Output wrapper ── */
 .output {
-    margin-top: 32px;
-    border-top: 1px solid #eee;
-    padding-top: 24px;
+    margin-top: 36px;
+    border-top: 2px solid #e8ecff;
+    padding-top: 28px;
 }
 
 .output h2 {
-    font-size: 18px;
+    font-size: 20px;
     color: #2d2d2d;
-    margin-bottom: 12px;
+    margin-bottom: 20px;
 }
 
-.output pre {
+.output-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.output-header h2 {
+    margin-bottom: 0;
+}
+
+.download-btn {
+    padding: 8px 18px;
+    background: #4f6ef7;
+    color: white;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.2s;
+}
+
+.download-btn:hover { background: #3a56d4; }
+
+/* ── Section cards ── */
+.sections-view {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 28px;
+}
+
+.section-block {
+    border: 1px solid #dde2ff;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.section-title {
+    background: #4f6ef7;
+    color: white;
+    padding: 10px 16px;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+.section-content {
+    background: #f8f9ff;
+    padding: 16px;
+    font-size: 13px;
+    font-family: 'Courier New', monospace;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    color: #333;
+    line-height: 1.6;
+}
+
+/* ── Full LaTeX block ── */
+.latex-block {
+    margin-top: 8px;
+}
+
+.latex-block-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.latex-block h3 {
+    font-size: 15px;
+    color: #555;
+    font-weight: 600;
+}
+
+.copy-btn {
+    width: auto;
+    padding: 5px 12px;
+    background: #1e1e2e;
+    color: #cdd6f4;
+    border: 1px solid #313244;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-top: 0;
+    transition: background 0.2s, color 0.2s;
+}
+
+.copy-btn:hover { background: #313244; color: #fff; }
+
+.latex-code {
+    background: #313244;
+    color: #cdd6f4;
+    border-radius: 10px;
+    padding: 20px;
+    font-size: 13px;
+    font-family: 'Courier New', monospace;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    line-height: 1.7;
+    border: 1px solid #222;
+}
+
+/* ── Raw fallback ── */
+.raw-output {
     background: #f8f9ff;
     border: 1px solid #e0e4ff;
     border-radius: 8px;
@@ -73,4 +181,5 @@ button:hover { background: #3a56d4; }
     white-space: pre-wrap;
     word-wrap: break-word;
     color: #333;
+    font-family: 'Courier New', monospace;
 }
