@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart-TeX | Test Generator</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🧠 Smart-TeX</h1>
+        <p class="subtitle">AI-Powered Test & Worksheet Generator</p>
+
+        <form action="/generate" method="POST">
+            <div class="form-group">
+                <label>Subject</label>
+                <input type="text" name="subject" placeholder="e.g. Mathematics" required>
+            </div>
+
+            <div class="form-group">
+                <label>Grade</label>
+                <input type="text" name="grade" placeholder="e.g. Grade 5" required>
+            </div>
+
+            <div class="form-group">
+                <label>Type</label>
+                <select name="test_type">
+                    <option value="Test">Test</option>
+                    <option value="Worksheet">Worksheet</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Total Marks</label>
+                <input type="number" name="marks" placeholder="e.g. 20" required>
+            </div>
+
+            <div class="form-group">
+                <label>Difficulty Level</label>
+                <select name="difficulty">
+                    <option value="Easy">Easy</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Hard">Hard</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Sections to Include</label>
+                <input type="text" name="sections" placeholder="e.g. MCQ, Short Answer, Long Answer" required>
+            </div>
+
+            <div class="form-group">
+                <label>School Name</label>
+                <input type="text" name="school" placeholder="e.g. DPS" required>
+            </div>
+
+            <button type="submit">Generate ✨</button>
+        </form>
+        <div class="output">
+            <h2>Generated Output</h2>
+            <pre>{{ output }}</pre>
+        </div>
+    </div>
+</body>
+</html>
