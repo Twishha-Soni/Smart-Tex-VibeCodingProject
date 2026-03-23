@@ -11,7 +11,7 @@
         <h1>🧠 Smart-TeX</h1>
         <p class="subtitle">AI-Powered Test & Worksheet Generator</p>
 
-        <form action="/generate" method="POST">
+        <form action="/generate" method="POST" enctype="multipart/form-data">
             <div class="form-group">
                 <label>Subject</label>
                 <input type="text" name="subject" placeholder="e.g. Mathematics" required>
@@ -54,8 +54,20 @@
                 <input type="text" name="school" placeholder="e.g. DPS" required>
             </div>
 
+            <div class="form-group">
+                <label>Upload Chapter PDF <span class="optional-tag">(optional)</span></label>
+                <input type="file" name="chapter_pdf" accept=".pdf" id="chapter_pdf">
+                <p class="field-hint">Upload a chapter PDF to generate questions based on its content.</p>
+            </div>
+
             <button type="submit">Generate ✨</button>
         </form>
+
+        {% if pdf_warning %}
+        <div class="pdf-warning">
+            ⚠️ {{ pdf_warning }}
+        </div>
+        {% endif %}
 
         {% if parsed %}
         <div class="output">
