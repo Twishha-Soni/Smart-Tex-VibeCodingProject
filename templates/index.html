@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -36,17 +36,20 @@
             </div>
 
             <div class="form-group">
-                <label>Difficulty Level</label>
-                <select name="difficulty">
-                    <option value="Easy">Easy</option>
-                    <option value="Medium">Medium</option>
-                    <option value="Hard">Hard</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label>Sections to Include</label>
-                <input type="text" name="sections" placeholder="e.g. MCQ, Short Answer, Long Answer" required>
+                <label>Sections &amp; Difficulty</label>
+                <p class="field-hint">Add each section and set its difficulty level.</p>
+                <div id="sections-container">
+                    <div class="section-row">
+                        <input type="text" name="section_name[]" placeholder="e.g. MCQ" required>
+                        <select name="section_difficulty[]">
+                            <option value="Easy">Easy</option>
+                            <option value="Medium">Medium</option>
+                            <option value="Hard">Hard</option>
+                        </select>
+                        <button type="button" class="remove-section-btn" onclick="removeSection(this)">✕</button>
+                    </div>
+                </div>
+                <button type="button" class="add-section-btn" onclick="addSection()">+ Add Section</button>
             </div>
 
             <div class="form-group">
@@ -54,10 +57,29 @@
                 <input type="text" name="school" placeholder="e.g. DPS" required>
             </div>
 
+            <!-- Sprint 4 Task 4: Custom prompt add-on -->
+            <div class="form-group">
+                <label>Additional Instructions <span class="optional-tag">(optional)</span></label>
+                <textarea
+                    name="custom_instructions"
+                    placeholder="e.g. Include at least 2 diagram-based questions. Avoid questions on Chapter 3."
+                    rows="3"
+                ></textarea>
+                <p class="field-hint">These instructions will be appended to the prompt sent to the AI.</p>
+            </div>
+
+            <!-- Sprint 4 Task 8: Image upload -->
+            <div class="form-group">
+                <label>Upload Diagram / Image <span class="optional-tag">(optional)</span></label>
+                <input type="file" name="question_image" accept=".png,.jpg,.jpeg,.gif,.bmp,.webp" id="question_image">
+                <p class="field-hint">Upload a diagram or figure to be included as a question in the paper.</p>
+            </div>
+
+            <!-- Sprint 3: Chapter PDF upload -->
             <div class="form-group">
                 <label>Upload Chapter PDF <span class="optional-tag">(optional)</span></label>
                 <input type="file" name="chapter_pdf" accept=".pdf" id="chapter_pdf">
-                <p class="field-hint">Upload a chapter PDF to generate questions based on its content.</p>
+                <p class="field-hint">Upload a chapter PDF to generate questions based on its content. Scanned PDFs are handled automatically via OCR.</p>
             </div>
 
             <button type="submit">Generate ✨</button>
@@ -66,6 +88,12 @@
         {% if pdf_warning %}
         <div class="pdf-warning">
             ⚠️ {{ pdf_warning }}
+        </div>
+        {% endif %}
+
+        {% if image_warning %}
+        <div class="pdf-warning">
+            🖼️ {{ image_warning }}
         </div>
         {% endif %}
 
@@ -116,6 +144,29 @@
     </div>
 
 <script>
+function addSection() {
+    const container = document.getElementById("sections-container");
+    const row = document.createElement("div");
+    row.className = "section-row";
+    row.innerHTML = `
+        <input type="text" name="section_name[]" placeholder="e.g. Short Answer" required>
+        <select name="section_difficulty[]">
+            <option value="Easy">Easy</option>
+            <option value="Medium">Medium</option>
+            <option value="Hard">Hard</option>
+        </select>
+        <button type="button" class="remove-section-btn" onclick="removeSection(this)">✕</button>
+    `;
+    container.appendChild(row);
+}
+
+function removeSection(btn) {
+    const container = document.getElementById("sections-container");
+    if (container.children.length > 1) {
+        btn.closest(".section-row").remove();
+    }
+}
+
 function copyLatex(btn) {
     const pre = btn.closest('.latex-block').querySelector('.latex-code');
     navigator.clipboard.writeText(pre.innerText).then(() => {
