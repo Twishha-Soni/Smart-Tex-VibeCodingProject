@@ -1,105 +1,151 @@
+import os
 import re
-from fpdf import FPDF
-
-
-class LatexPDF(FPDF):
-    def header(self):
-        pass
-
-    def footer(self):
-        self.set_y(-15)
-        self.set_font("Courier", "I", 8)
-        self.set_text_color(150, 150, 150)
-        self.cell(0, 10, f"Page {self.page_no()}", align="C")
-
-
-def clean_latex(text: str) -> str:
-    """Strip LaTeX commands and return readable plain text."""
-
-    # Remove \begin{...} and \end{...} blocks
-    text = re.sub(r'\\(begin|end)\{[^}]*\}(\[[^\]]*\])?', '', text)
-
-    # Remove \documentclass, \usepackage, \geometry etc.
-    text = re.sub(r'\\(documentclass|usepackage|geometry|pagestyle|setlength|renewcommand|newcommand)[^\n]*', '', text)
-
-    # Replace \item with a bullet dash
-    text = re.sub(r'\\item\s*', '  - ', text)
-
-    # Replace \section*{...} or \section{...} with the title text
-    text = re.sub(r'\\section\*?\{([^}]+)\}', r'\1', text)
-
-    # Replace \textbf{...} → just the text
-    text = re.sub(r'\\textbf\{([^}]+)\}', r'\1', text)
-
-    # Replace \textit{...} → just the text
-    text = re.sub(r'\\textit\{([^}]+)\}', r'\1', text)
-
-    # Replace \underline{...} → just the text
-    text = re.sub(r'\\underline\{([^}]+)\}', r'\1', text)
-
-    # Replace \hspace{...} with blank spaces
-    text = re.sub(r'\\hspace\{[^}]+\}', '______', text)
-
-    # Remove \hfill, \vspace{}, \noindent, \centering, \hrulefill etc.
-    text = re.sub(r'\\(hfill|hrulefill|noindent|centering|maketitle|tableofcontents)', '', text)
-    text = re.sub(r'\\vspace\{[^}]*\}', '', text)
-    text = re.sub(r'\\(large|Large|LARGE|huge|Huge|small|footnotesize|normalsize)\b', '', text)
-
-    # Remove math mode wrappers but keep content: $...$ and \(...\)
-    text = re.sub(r'\$([^$]+)\$', r'\1', text)
-    text = re.sub(r'\\\(([^)]+)\\\)', r'\1', text)
-
-    # Remove remaining backslash commands like \\, \quad, \left, \right etc.
-    text = re.sub(r'\\(quad|qquad|left|right|cdot|ldots|dots|pm|times|div)\b', ' ', text)
-    text = re.sub(r'\\\\', '\n', text)  # \\ → newline
-    text = re.sub(r'\\[a-zA-Z]+\*?(\{[^}]*\})*', '', text)  # catch-all for remaining commands
-
-    # Clean up extra whitespace and blank lines
-    text = re.sub(r'\n{3,}', '\n\n', text)
-    text = re.sub(r'[ \t]+', ' ', text)
-    text = text.strip()
-
-    return text
+import subprocess
+import tempfile
 
 
 def generate_pdf(latex_code: str, sections: list) -> bytes:
     """
-    Generates a clean readable PDF from parsed Gemini output.
+    Compiles LaTeX source via pdflatex and returns the resulting PDF as bytes.
+
+    Strategy:
+      - If latex_code is a complete LaTeX document (has \\documentclass), compile it directly.
+      - If only sections are available (no full document), wrap them in a minimal template first.
+      - pdflatex is run twice so cross-references and page numbers resolve correctly.
+      - All temp files are cleaned up automatically after compilation.
 
     Args:
-        latex_code: full cleaned LaTeX string (fallback)
-        sections:   list of {"title": str, "content": str}
+        latex_code: full LaTeX string from Gemini (may or may not be a complete document)
+        sections:   list of {"title": str, "content": str} — used as fallback if needed
 
     Returns:
         PDF file as bytes
+
+    Raises:
+        RuntimeError: if pdflatex fails (stderr included in message for debugging)
     """
 
-    pdf = LatexPDF()
-    pdf.set_auto_page_break(auto=True, margin=15)
-    pdf.add_page()
-
-    # ── Case 1: Sections available ──
-    if sections:
-        for section in sections:
-            # Section title bar
-            pdf.set_font("Helvetica", "B", 12)
-            pdf.set_fill_color(79, 110, 247)
-            pdf.set_text_color(255, 255, 255)
-            pdf.cell(0, 10, section["title"], new_x="LMARGIN", new_y="NEXT", fill=True)
-
-            # Clean and write section content
-            pdf.set_font("Helvetica", "", 11)
-            pdf.set_text_color(30, 30, 30)
-            pdf.set_fill_color(248, 249, 255)
-            clean_content = clean_latex(section["content"])
-            pdf.multi_cell(0, 7, clean_content, fill=True)
-            pdf.ln(6)
-
-    # ── Case 2: No sections — clean full latex code ──
+    # ── Step 1: Decide what LaTeX source to compile ──
+    if _is_complete_document(latex_code):
+        # Gemini returned a full document — compile it as-is
+        source = latex_code
+    elif sections:
+        # Gemini returned sections without a document wrapper — build one
+        source = _wrap_sections_in_template(sections)
     else:
-        pdf.set_font("Helvetica", "", 11)
-        pdf.set_text_color(30, 30, 30)
-        clean_content = clean_latex(latex_code)
-        pdf.multi_cell(0, 7, clean_content)
+        # Last resort: wrap whatever raw text we have
+        source = _wrap_plain_text(latex_code)
 
-    return bytes(pdf.output())
+    # ── Step 2: Write .tex to a temp dir and compile ──
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tex_path = os.path.join(tmpdir, "output.tex")
+        pdf_path = os.path.join(tmpdir, "output.pdf")
+
+        with open(tex_path, "w", encoding="utf-8") as f:
+            f.write(source)
+
+        # Run pdflatex twice — needed for correct page numbers / references
+        for _ in range(2):
+            result = subprocess.run(
+                [
+                    "pdflatex",
+                    "-interaction=nonstopmode",   # don't pause on errors
+                    "-output-directory", tmpdir,
+                    tex_path
+                ],
+                capture_output=True,
+                text=True,
+                timeout=60                        # safety timeout (seconds)
+            )
+
+        # ── Step 3: Check output exists ──
+        if not os.path.exists(pdf_path):
+            # Dump pdflatex log for debugging
+            log_path = os.path.join(tmpdir, "output.log")
+            log_text = ""
+            if os.path.exists(log_path):
+                with open(log_path, "r", encoding="utf-8", errors="ignore") as lf:
+                    log_text = lf.read()[-3000:]   # last 3000 chars is usually the relevant error
+
+            raise RuntimeError(
+                f"pdflatex failed — PDF not produced.\n"
+                f"STDERR:\n{result.stderr[-1000:]}\n"
+                f"LOG (tail):\n{log_text}"
+            )
+
+        # ── Step 4: Read and return PDF bytes ──
+        with open(pdf_path, "rb") as f:
+            return f.read()
+
+
+# ── Helpers ──────────────────────────────────────────────────────────────────
+
+def _is_complete_document(latex_code: str) -> bool:
+    """Returns True if the string contains a full LaTeX document structure."""
+    return (
+        r"\documentclass" in latex_code and
+        r"\begin{document}" in latex_code and
+        r"\end{document}" in latex_code
+    )
+
+
+def _wrap_sections_in_template(sections: list) -> str:
+    """
+    Wraps parsed section dicts into a minimal but properly formatted LaTeX document.
+    Used when Gemini returned section content without a full document wrapper.
+    """
+    body_parts = []
+    for sec in sections:
+        title   = _escape_latex(sec.get("title", ""))
+        content = sec.get("content", "").strip()
+        body_parts.append(f"\\section*{{{title}}}\n{content}\n")
+
+    body = "\n".join(body_parts)
+
+    return f"""\\documentclass[12pt,a4paper]{{article}}
+\\usepackage[margin=2.5cm]{{geometry}}
+\\usepackage{{amsmath}}
+\\usepackage{{amssymb}}
+\\usepackage{{enumitem}}
+\\usepackage{{parskip}}
+\\pagestyle{{plain}}
+\\begin{{document}}
+{body}
+\\end{{document}}
+"""
+
+
+def _wrap_plain_text(text: str) -> str:
+    """
+    Last-resort wrapper: escapes and wraps raw text in a minimal LaTeX document.
+    """
+    escaped = _escape_latex(text)
+    return f"""\\documentclass[12pt,a4paper]{{article}}
+\\usepackage[margin=2.5cm]{{geometry}}
+\\usepackage{{parskip}}
+\\pagestyle{{plain}}
+\\begin{{document}}
+{escaped}
+\\end{{document}}
+"""
+
+
+def _escape_latex(text: str) -> str:
+    """
+    Escapes special LaTeX characters in plain text strings
+    (used only for fallback wrapping — not applied to raw LaTeX source).
+    """
+    replacements = [
+        ("&",  r"\&"),
+        ("%",  r"\%"),
+        ("$",  r"\$"),
+        ("#",  r"\#"),
+        ("_",  r"\_"),
+        ("{",  r"\{"),
+        ("}",  r"\}"),
+        ("~",  r"\textasciitilde{}"),
+        ("^",  r"\textasciicircum{}"),
+    ]
+    for char, escaped in replacements:
+        text = text.replace(char, escaped)
+    return text

@@ -25,7 +25,7 @@ h1 { font-size: 28px; color: #2d2d2d; margin-bottom: 4px; }
 .form-group { margin-bottom: 18px; }
 .form-group label { display: block; font-weight: 600; margin-bottom: 6px; color: #444; }
 
-input, select {
+input, select, textarea {
     width: 100%;
     padding: 10px 14px;
     border: 1px solid #ddd;
@@ -33,9 +33,18 @@ input, select {
     font-size: 14px;
     outline: none;
     transition: border 0.2s;
+    font-family: 'Segoe UI', sans-serif;
 }
 
-input:focus, select:focus { border-color: #4f6ef7; }
+input:focus, select:focus, textarea:focus { border-color: #4f6ef7; }
+
+/* Sprint 4 Task 4: Custom instructions textarea */
+textarea {
+    resize: vertical;
+    min-height: 80px;
+    line-height: 1.5;
+    color: #333;
+}
 
 button {
     width: 100%;
@@ -183,6 +192,7 @@ button:hover { background: #3a56d4; }
     color: #333;
     font-family: 'Courier New', monospace;
 }
+
 /* ── Sprint 3: PDF upload field ── */
 input[type="file"] {
     padding: 8px 10px;
@@ -218,3 +228,51 @@ input[type="file"] {
     color: #92400e;
     line-height: 1.5;
 }
+
+/* ── Sprint 4: Per-section difficulty ── */
+.section-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.section-row input {
+    flex: 2;
+}
+
+.section-row select {
+    flex: 1;
+}
+
+.remove-section-btn {
+    width: auto;
+    padding: 8px 12px;
+    background: #fee2e2;
+    color: #dc2626;
+    border: 1px solid #fca5a5;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 0;
+    transition: background 0.2s;
+}
+
+.remove-section-btn:hover { background: #fca5a5; }
+
+.add-section-btn {
+    width: auto;
+    padding: 7px 14px;
+    background: #f0f4ff;
+    color: #4f6ef7;
+    border: 1px dashed #4f6ef7;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 4px;
+    transition: background 0.2s;
+}
+
+.add-section-btn:hover { background: #e0e7ff; }
