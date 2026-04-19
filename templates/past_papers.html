@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart-TeX | Past Papers</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="past-papers-header">
+            <div>
+                <h1>🧠 Smart-TeX</h1>
+                <p class="subtitle">Past Generated Papers</p>
+            </div>
+            <a href="/" class="nav-link">← Back to Generator</a>
+        </div>
+
+        {% if papers %}
+        <div class="table-wrapper">
+            <table class="papers-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Subject</th>
+                        <th>Grade</th>
+                        <th>Type</th>
+                        <th>Marks</th>
+                        <th>Date & Time</th>
+                        <th>Download</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for paper in papers %}
+                    <tr>
+                        <td>{{ paper.id }}</td>
+                        <td>{{ paper.subject }}</td>
+                        <td>{{ paper.grade }}</td>
+                        <td>
+                            <span class="type-badge type-{{ paper.test_type | lower }}">
+                                {{ paper.test_type }}
+                            </span>
+                        </td>
+                        <td>{{ paper.marks if paper.marks else '—' }}</td>
+                        <td>{{ paper.date_generated.strftime('%d %b %Y, %I:%M %p') }}</td>
+                        <td>
+                            <a href="/download/{{ paper.id }}" class="download-btn">⬇ PDF</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% else %}
+        <div class="empty-state">
+            <p>📭 No papers generated yet.</p>
+            <p>Go back to the generator and create your first paper!</p>
+            <a href="/" class="nav-link" style="margin-top: 16px; display: inline-block;">← Go to Generator</a>
+        </div>
+        {% endif %}
+
+    </div>
+</body>
+</html>

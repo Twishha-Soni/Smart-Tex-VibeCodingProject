@@ -1,4 +1,5 @@
 from flask import Flask, request, render_template, session, Response
+from flask_sqlalchemy import SQLAlchemy
 from google import genai
 from prompt_template import build_prompt
 from parse_response import parse_gemini_response
@@ -7,15 +8,45 @@ from pdf_extractor import extract_pdf_text
 from dotenv import load_dotenv
 import os
 import uuid
+import json
+from datetime import datetime
 
 load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = "smarttex-dev-key"
+
+# ── Sprint 5 Task 1: SQLite + SQLAlchemy configuration ──
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///smarttex.db"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+db = SQLAlchemy(app)
+
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
-# Allowed image extensions for Task 8
+# Allowed image extensions for Sprint 4 Task 8
 ALLOWED_IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".gif", ".bmp", ".webp"}
+
+
+# ── Sprint 5 Task 2: Paper model — maps to the papers table in SQLite ──
+class Paper(db.Model):
+    __tablename__ = "papers"
+
+    id             = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    subject        = db.Column(db.Text, nullable=False)
+    grade          = db.Column(db.Text, nullable=False)
+    test_type      = db.Column(db.Text, nullable=False)
+    marks          = db.Column(db.Integer, nullable=True)
+    date_generated = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    latex_code     = db.Column(db.Text, nullable=False)
+    sections       = db.Column(db.Text, nullable=True)   # stored as JSON string
+
+    def __repr__(self):
+        return f"<Paper id={self.id} subject='{self.subject}' grade='{self.grade}'>"
+
+
+# ── Sprint 5 Task 1: Initialise database tables on startup ──
+with app.app_context():
+    db.create_all()
 
 
 @app.route("/")
@@ -98,6 +129,27 @@ def generate():
     session["latex_code"] = parsed["latex_code"]
     session["sections"]   = parsed["sections"]
 
+    # ── Sprint 5 Task 3: Auto-save generated paper to database ──
+    if parsed["latex_code"]:
+        try:
+            paper = Paper(
+                subject        = subject,
+                grade          = grade,
+                test_type      = test_type,
+                marks          = int(marks) if marks else None,
+                date_generated = datetime.utcnow(),
+                latex_code     = parsed["latex_code"],
+                sections       = json.dumps(parsed["sections"])
+            )
+            db.session.add(paper)
+            db.session.commit()
+            print(f"[app] Paper saved to DB — id={paper.id} subject='{subject}' grade='{grade}'")
+        except Exception as e:
+            db.session.rollback()
+            print(f"[app] DB save failed: {e}")
+    else:
+        print("[app] Gemini returned empty LaTeX — paper not saved to DB")
+
     return render_template(
         "index.html",
         parsed=parsed,
@@ -130,6 +182,47 @@ def download():
         pdf_bytes,
         mimetype="application/pdf",
         headers={"Content-Disposition": "attachment; filename=smart_tex_output.pdf"}
+    )
+
+
+# ── Sprint 5 Task 5: Past Papers route ──
+@app.route("/papers")
+def papers():
+    all_papers = Paper.query.order_by(Paper.date_generated.desc()).all()
+    print(f"[papers] Fetched {len(all_papers)} papers from DB")
+    return render_template("past_papers.html", papers=all_papers)
+
+
+# ── Sprint 5 Task 7: Re-download route — regenerate PDF from stored DB record ──
+@app.route("/download/<int:paper_id>")
+def download_by_id(paper_id):
+    paper = Paper.query.get_or_404(paper_id)
+
+    # Deserialise sections JSON string back to list
+    try:
+        sections = json.loads(paper.sections) if paper.sections else []
+    except (json.JSONDecodeError, TypeError):
+        sections = []
+
+    print(f"[download_by_id] Re-downloading paper id={paper_id} subject='{paper.subject}'")
+
+    try:
+        pdf_bytes = generate_pdf(paper.latex_code, sections)
+    except RuntimeError as e:
+        print(f"[download_by_id] pdflatex error:\n{e}")
+        return (
+            f"PDF compilation failed for paper #{paper_id}. "
+            "The stored LaTeX may contain errors.\n\n"
+            f"Technical detail:\n{str(e)[:500]}",
+            500
+        )
+
+    filename = f"smart_tex_{paper.subject}_{paper.grade}.pdf".replace(" ", "_")
+
+    return Response(
+        pdf_bytes,
+        mimetype="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
 
 
