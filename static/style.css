@@ -362,3 +362,180 @@ input[type="file"] {
     font-size: 15px;
     line-height: 2;
 }
+
+/* ── Sprint 6 Task 5: Question Bank page ── */
+
+/* Wider container for the question bank table */
+.container--wide {
+    max-width: 1200px;
+}
+
+/* Multiple nav links grouped together in the header */
+.nav-links-group {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+/* Primary nav link — filled blue, used for "+ Add Question" */
+.nav-link--primary {
+    background: #4f6ef7;
+    color: white;
+    border-color: #4f6ef7;
+}
+
+.nav-link--primary:hover {
+    background: #3a56d4;
+    color: white;
+}
+
+/* Filter form bar */
+.filter-form {
+    background: #f8f9ff;
+    border: 1px solid #e8ecff;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+}
+
+.filter-row {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 120px;
+}
+
+.filter-group label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.filter-group select {
+    padding: 8px 10px;
+    font-size: 13px;
+}
+
+.filter-group--btn {
+    flex: 0 0 auto;
+    min-width: unset;
+}
+
+.filter-btn {
+    width: auto;
+    padding: 8px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-top: 0;
+    border-radius: 8px;
+}
+
+.clear-filter-btn {
+    display: inline-block;
+    padding: 8px 14px;
+    background: #fee2e2;
+    color: #dc2626;
+    border: 1px solid #fca5a5;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background 0.2s;
+}
+
+.clear-filter-btn:hover { background: #fca5a5; }
+
+/* Result count line */
+.result-count {
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 12px;
+}
+
+.result-count strong {
+    color: #4f6ef7;
+}
+
+/* Question Bank table — question column wraps, others stay narrow */
+.qb-table {
+    font-size: 13px;
+}
+
+.qb-table th, .qb-table td {
+    padding: 10px 12px;
+}
+
+.question-cell {
+    max-width: 340px;
+    white-space: normal;
+    line-height: 1.5;
+    color: #333;
+}
+
+.actions-cell {
+    white-space: nowrap;
+}
+
+/* Difficulty badges */
+.diff-badge {
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.diff-easy   { background: #d1fae5; color: #065f46; }
+.diff-medium { background: #fef3c7; color: #92400e; }
+.diff-hard   { background: #fee2e2; color: #991b1b; }
+
+/* Edit / Delete action buttons inside the table */
+.action-btn {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    margin-right: 4px;
+    transition: background 0.2s;
+}
+
+.edit-btn {
+    background: #e0e7ff;
+    color: #3730a3;
+}
+
+.edit-btn:hover { background: #c7d2fe; }
+
+.delete-btn {
+    background: #fee2e2;
+    color: #dc2626;
+    width: auto;
+    margin-top: 0;
+    padding: 5px 10px;
+    font-size: 12px;
+}
+
+.delete-btn:hover { background: #fca5a5; }
+
+/* ── Sprint 6 Task 6: Required field marker ── */
+.required-tag {
+    font-size: 11px;
+    font-weight: 600;
+    color: #dc2626;
+    margin-left: 4px;
+}

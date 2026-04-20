@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart-TeX | Question Bank</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container container--wide">
+
+        <!-- Header -->
+        <div class="past-papers-header">
+            <div>
+                <h1>🧠 Smart-TeX</h1>
+                <p class="subtitle">Question Bank</p>
+            </div>
+            <div class="nav-links-group">
+                <a href="/" class="nav-link">← Generator</a>
+                <a href="/papers" class="nav-link">📄 Past Papers</a>
+                <a href="/questions/add" class="nav-link nav-link--primary">+ Add Question</a>
+            </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <form method="GET" action="/questions" class="filter-form">
+            <div class="filter-row">
+
+                <div class="filter-group">
+                    <label>Subject</label>
+                    <select name="subject">
+                        <option value="">All</option>
+                        {% for s in all_subjects %}
+                        <option value="{{ s }}" {% if filters.subject == s %}selected{% endif %}>{{ s }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label>Grade</label>
+                    <select name="grade">
+                        <option value="">All</option>
+                        {% for g in all_grades %}
+                        <option value="{{ g }}" {% if filters.grade == g %}selected{% endif %}>{{ g }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label>Chapter</label>
+                    <select name="chapter_name">
+                        <option value="">All</option>
+                        {% for c in all_chapters %}
+                        <option value="{{ c }}" {% if filters.chapter_name == c %}selected{% endif %}>{{ c }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label>Difficulty</label>
+                    <select name="difficulty">
+                        <option value="">All</option>
+                        {% for d in all_difficulties %}
+                        <option value="{{ d }}" {% if filters.difficulty == d %}selected{% endif %}>{{ d }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label>Type</label>
+                    <select name="question_type">
+                        <option value="">All</option>
+                        {% for t in all_question_types %}
+                        <option value="{{ t }}" {% if filters.question_type == t %}selected{% endif %}>{{ t }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="filter-group filter-group--btn">
+                    <label>&nbsp;</label>
+                    <button type="submit" class="filter-btn">🔍 Filter</button>
+                </div>
+
+                {% if filters.subject or filters.grade or filters.chapter_name or filters.difficulty or filters.question_type %}
+                <div class="filter-group filter-group--btn">
+                    <label>&nbsp;</label>
+                    <a href="/questions" class="clear-filter-btn">✕ Clear</a>
+                </div>
+                {% endif %}
+
+            </div>
+        </form>
+
+        <!-- Result count -->
+        <p class="result-count">
+            Showing <strong>{{ questions | length }}</strong> question{% if questions | length != 1 %}s{% endif %}
+        </p>
+
+        <!-- Questions Table -->
+        {% if questions %}
+        <div class="table-wrapper">
+            <table class="papers-table qb-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Subject</th>
+                        <th>Grade</th>
+                        <th>Chapter</th>
+                        <th>Difficulty</th>
+                        <th>Type</th>
+                        <th>Question</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for q in questions %}
+                    <tr>
+                        <td>{{ q.id }}</td>
+                        <td>{{ q.subject }}</td>
+                        <td>{{ q.grade }}</td>
+                        <td>{{ q.chapter_name if q.chapter_name else '—' }}</td>
+                        <td>
+                            {% if q.difficulty %}
+                            <span class="diff-badge diff-{{ q.difficulty | lower }}">{{ q.difficulty }}</span>
+                            {% else %}—{% endif %}
+                        </td>
+                        <td>{{ q.question_type if q.question_type else '—' }}</td>
+                        <td class="question-cell">{{ q.content }}</td>
+                        <td class="actions-cell">
+                            <a href="/questions/edit/{{ q.id }}" class="action-btn edit-btn">✏ Edit</a>
+                            <form method="POST" action="/questions/delete/{{ q.id }}"
+                                  onsubmit="return confirm('Delete this question?');"
+                                  style="display:inline;">
+                                <button type="submit" class="action-btn delete-btn">🗑 Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% else %}
+        <div class="empty-state">
+            <p>📭 No questions found.</p>
+            {% if filters.subject or filters.grade or filters.chapter_name or filters.difficulty or filters.question_type %}
+            <p>Try adjusting your filters, or <a href="/questions">clear all filters</a>.</p>
+            {% else %}
+            <p>Generate a paper first — questions are saved automatically.</p>
+            <a href="/" class="nav-link" style="margin-top: 16px; display: inline-block;">← Go to Generator</a>
+            {% endif %}
+        </div>
+        {% endif %}
+
+    </div>
+</body>
+</html>

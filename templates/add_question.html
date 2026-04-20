@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart-TeX | Add Question</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+
+        <!-- Header -->
+        <div class="past-papers-header">
+            <div>
+                <h1>🧠 Smart-TeX</h1>
+                <p class="subtitle">Add Question</p>
+            </div>
+            <a href="/questions" class="nav-link">← Question Bank</a>
+        </div>
+
+        <!-- Error banner -->
+        {% if error %}
+        <div class="pdf-warning">
+            ⚠️ {{ error }}
+        </div>
+        {% endif %}
+
+        <!-- Add Question Form -->
+        <form action="/questions/add" method="POST">
+
+            <div class="form-group">
+                <label>Subject <span class="required-tag">*</span></label>
+                <input type="text" name="subject"
+                       value="{{ form_data.get('subject', '') }}"
+                       placeholder="e.g. Mathematics" required>
+            </div>
+
+            <div class="form-group">
+                <label>Grade <span class="required-tag">*</span></label>
+                <input type="text" name="grade"
+                       value="{{ form_data.get('grade', '') }}"
+                       placeholder="e.g. Grade 8" required>
+            </div>
+
+            <div class="form-group">
+                <label>Chapter Name <span class="optional-tag">(optional)</span></label>
+                <input type="text" name="chapter_name"
+                       value="{{ form_data.get('chapter_name', '') }}"
+                       placeholder="e.g. Chapter 4 – Fractions">
+            </div>
+
+            <div class="form-group">
+                <label>Difficulty <span class="optional-tag">(optional)</span></label>
+                <select name="difficulty">
+                    <option value="">— Select —</option>
+                    <option value="Easy"   {% if form_data.get('difficulty') == 'Easy'   %}selected{% endif %}>Easy</option>
+                    <option value="Medium" {% if form_data.get('difficulty') == 'Medium' %}selected{% endif %}>Medium</option>
+                    <option value="Hard"   {% if form_data.get('difficulty') == 'Hard'   %}selected{% endif %}>Hard</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Question Type <span class="optional-tag">(optional)</span></label>
+                <select name="question_type">
+                    <option value="">— Select —</option>
+                    <option value="MCQ"               {% if form_data.get('question_type') == 'MCQ'               %}selected{% endif %}>MCQ</option>
+                    <option value="Short Answer"      {% if form_data.get('question_type') == 'Short Answer'      %}selected{% endif %}>Short Answer</option>
+                    <option value="Long Answer"       {% if form_data.get('question_type') == 'Long Answer'       %}selected{% endif %}>Long Answer</option>
+                    <option value="Fill in the Blanks"{% if form_data.get('question_type') == 'Fill in the Blanks'%}selected{% endif %}>Fill in the Blanks</option>
+                    <option value="True/False"        {% if form_data.get('question_type') == 'True/False'        %}selected{% endif %}>True/False</option>
+                    <option value="Match the Following"{% if form_data.get('question_type') == 'Match the Following'%}selected{% endif %}>Match the Following</option>
+                    <option value="Diagram Based"     {% if form_data.get('question_type') == 'Diagram Based'     %}selected{% endif %}>Diagram Based</option>
+                    <option value="Essay"             {% if form_data.get('question_type') == 'Essay'             %}selected{% endif %}>Essay</option>
+                    <option value="General"           {% if form_data.get('question_type') == 'General'           %}selected{% endif %}>General</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Question Content <span class="required-tag">*</span></label>
+                <textarea name="content" rows="5"
+                          placeholder="Type the full question here..." required>{{ form_data.get('content', '') }}</textarea>
+            </div>
+
+            <button type="submit">💾 Save Question</button>
+
+        </form>
+
+    </div>
+</body>
+</html>
