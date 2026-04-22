@@ -13,12 +13,65 @@
                 <h1>🧠 Smart-TeX</h1>
                 <p class="subtitle">Past Generated Papers</p>
             </div>
-            <!-- Sprint 6 Task 9: Navigation links grouped -->
+            <!-- Navigation links -->
             <div class="nav-links-group">
                 <a href="/" class="nav-link">← Generator</a>
                 <a href="/questions" class="nav-link">🗂 Question Bank</a>
             </div>
         </div>
+
+        <!-- Sprint 7 Task 1: Filter Bar -->
+        <form method="GET" action="/papers" class="filter-form">
+            <div class="filter-row">
+
+                <div class="filter-group">
+                    <label>Subject</label>
+                    <select name="subject">
+                        <option value="">All</option>
+                        {% for s in all_subjects %}
+                        <option value="{{ s }}" {% if filters.subject == s %}selected{% endif %}>{{ s }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label>Grade</label>
+                    <select name="grade">
+                        <option value="">All</option>
+                        {% for g in all_grades %}
+                        <option value="{{ g }}" {% if filters.grade == g %}selected{% endif %}>{{ g }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label>Type</label>
+                    <select name="test_type">
+                        <option value="">All</option>
+                        <option value="Test"      {% if filters.test_type == 'Test'      %}selected{% endif %}>Test</option>
+                        <option value="Worksheet" {% if filters.test_type == 'Worksheet' %}selected{% endif %}>Worksheet</option>
+                    </select>
+                </div>
+
+                <div class="filter-group filter-group--btn">
+                    <label>&nbsp;</label>
+                    <button type="submit" class="filter-btn">🔍 Filter</button>
+                </div>
+
+                {% if filters.subject or filters.grade or filters.test_type %}
+                <div class="filter-group filter-group--btn">
+                    <label>&nbsp;</label>
+                    <a href="/papers" class="clear-filter-btn">✕ Clear</a>
+                </div>
+                {% endif %}
+
+            </div>
+        </form>
+
+        <!-- Result count -->
+        <p class="result-count">
+            Showing <strong>{{ papers | length }}</strong> paper{% if papers | length != 1 %}s{% endif %}
+        </p>
 
         {% if papers %}
         <div class="table-wrapper">
@@ -32,6 +85,8 @@
                         <th>Marks</th>
                         <th>Date & Time</th>
                         <th>Download</th>
+                        <!-- Sprint 7 Task 5: Delete column -->
+                        <th>Delete</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -50,6 +105,14 @@
                         <td>
                             <a href="/download/{{ paper.id }}" class="download-btn">⬇ PDF</a>
                         </td>
+                        <!-- Sprint 7 Task 5: Delete button with confirmation -->
+                        <td class="actions-cell">
+                            <form method="POST" action="/papers/delete/{{ paper.id }}"
+                                  onsubmit="return confirm('Delete this paper and all its linked questions?');"
+                                  style="display:inline;">
+                                <button type="submit" class="action-btn delete-btn">🗑 Delete</button>
+                            </form>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -58,9 +121,13 @@
 
         {% else %}
         <div class="empty-state">
-            <p>📭 No papers generated yet.</p>
+            <p>📭 No papers found.</p>
+            {% if filters.subject or filters.grade or filters.test_type %}
+            <p>Try adjusting your filters, or <a href="/papers">clear all filters</a>.</p>
+            {% else %}
             <p>Go back to the generator and create your first paper!</p>
             <a href="/" class="nav-link" style="margin-top: 16px; display: inline-block;">← Go to Generator</a>
+            {% endif %}
         </div>
         {% endif %}
 
