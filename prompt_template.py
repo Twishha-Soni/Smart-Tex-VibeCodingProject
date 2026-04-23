@@ -19,9 +19,12 @@ def build_prompt(subject, grade, test_type, marks, sections_with_difficulty, sch
     if test_type == "Worksheet":
         marks_rule = "- Do NOT mention marks for any question or section — this is a worksheet, not a scored test"
         marks_info = "N/A (Worksheet)"
+        marks_enforcement = ""
     else:
         marks_rule = "- Each question must have marks clearly mentioned in square brackets e.g. [2 Marks]"
         marks_info = marks
+        # ── Sprint 8 B1: Enforce exact total marks — no rounding or adjustment ──
+        marks_enforcement = f"- The marks assigned to all questions across all sections MUST add up to EXACTLY {marks}. Do NOT round up, round down, or adjust. The sum must equal {marks} precisely."
 
     # ── Per-section difficulty block ──
     if sections_with_difficulty:
@@ -92,7 +95,10 @@ Follow these rules strictly:
 - Divide the paper into the requested sections clearly
 - Each section must match its specified difficulty level exactly
 - {marks_rule}
+{marks_enforcement}
 - Do NOT include answers, only questions
+- Do NOT print the difficulty level (Easy/Medium/Hard) in any section heading or anywhere in the paper — difficulty is for internal generation use only and must never be visible to students
+- For MCQ sections, distribute the correct answers evenly and randomly across all four options (A, B, C and D) — do NOT cluster correct answers on any one option, and do NOT create any pattern such as A, B, C, D repeating in order
 
 IMPORTANT — Paper Header Format:
 The LaTeX output MUST begin with a proper school exam paper header inside \\begin{{document}}, formatted like this:

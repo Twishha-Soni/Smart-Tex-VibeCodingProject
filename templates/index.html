@@ -34,7 +34,7 @@
         </div>
         {% endif %}
 
-        <form action="/generate" method="POST" enctype="multipart/form-data">
+        <form action="/generate" method="POST" enctype="multipart/form-data" id="generate-form">
             <div class="form-group">
                 <label>Subject</label>
                 <input type="text" name="subject" placeholder="e.g. Mathematics" required>
@@ -105,8 +105,17 @@
                 <p class="field-hint">Upload a chapter PDF to generate questions based on its content. Scanned PDFs are handled automatically via OCR.</p>
             </div>
 
-            <button type="submit">Generate ✨</button>
+            <!-- Sprint 8 I2: Generate button — shows spinner on click -->
+            <button type="submit" id="generate-btn">Generate ✨</button>
         </form>
+
+        <!-- Sprint 8 I2: Loading spinner — hidden by default, shown on form submit -->
+        <div id="loading-spinner" class="spinner-overlay" style="display:none;">
+            <div class="spinner-box">
+                <div class="spinner"></div>
+                <p class="spinner-text">Generating your paper, please wait…</p>
+            </div>
+        </div>
 
         {% if pdf_warning %}
         <div class="pdf-warning">
@@ -197,6 +206,14 @@ function copyLatex(btn) {
         setTimeout(() => btn.textContent = '⧉ Copy', 2000);
     });
 }
+
+// Sprint 8 I2: Show loading spinner on form submit, disable button to prevent double submit
+document.getElementById("generate-form").addEventListener("submit", function () {
+    document.getElementById("loading-spinner").style.display = "flex";
+    const btn = document.getElementById("generate-btn");
+    btn.disabled = true;
+    btn.textContent = "Generating…";
+});
 </script>
 </body>
 </html>
