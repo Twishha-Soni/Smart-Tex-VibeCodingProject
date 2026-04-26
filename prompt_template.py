@@ -91,8 +91,8 @@ School name: {school}
 {image_block}
 Follow these rules strictly:
 - Generate the paper using LaTeX code
-- Format the output cleanly so it can be printed directly
-- Divide the paper into the requested sections clearly
+- Format the output cleanly so it can be printed directly with proper question alignment and highlighting main heading of the question. Specifically taking care of formatting in mathematics or formula related question paper.
+- Divide the paper into the requested sections clearly which is nothing but main question based section so do not include inner sub question headings.
 - Each section must match its specified difficulty level exactly
 - {marks_rule}
 {marks_enforcement}

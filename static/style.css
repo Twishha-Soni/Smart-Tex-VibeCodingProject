@@ -87,6 +87,8 @@ button:hover { background: #3a56d4; }
 }
 
 .download-btn {
+    display: inline-block;
+    white-space: nowrap;
     padding: 8px 18px;
     background: #4f6ef7;
     color: white;
