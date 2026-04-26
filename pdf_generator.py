@@ -1,7 +1,35 @@
 import os
 import re
+import shutil
 import subprocess
 import tempfile
+
+
+def _find_pdflatex() -> str:
+    """
+    Locates the pdflatex binary.
+    Tries PATH first, then falls back to known install locations.
+    Raises RuntimeError if not found anywhere.
+    """
+    # Check PATH first (works locally and on most systems)
+    path = shutil.which("pdflatex")
+    if path:
+        return path
+
+    # Fallback: known locations on Debian/Ubuntu (Render uses Ubuntu)
+    fallback_paths = [
+        "/usr/bin/pdflatex",
+        "/usr/local/bin/pdflatex",
+        "/opt/texlive/bin/pdflatex",
+    ]
+    for p in fallback_paths:
+        if os.path.isfile(p):
+            return p
+
+    raise RuntimeError(
+        "pdflatex not found. Install TeX Live: "
+        "apt-get install texlive-latex-base texlive-latex-recommended texlive-latex-extra"
+    )
 
 
 def generate_pdf(latex_code: str, sections: list) -> bytes:
@@ -25,18 +53,19 @@ def generate_pdf(latex_code: str, sections: list) -> bytes:
         RuntimeError: if pdflatex fails (stderr included in message for debugging)
     """
 
-    # ── Step 1: Decide what LaTeX source to compile ──
+    # ── Step 1: Locate pdflatex binary ──
+    pdflatex_bin = _find_pdflatex()
+    print(f"[pdf_generator] Using pdflatex at: {pdflatex_bin}")
+
+    # ── Step 2: Decide what LaTeX source to compile ──
     if _is_complete_document(latex_code):
-        # Gemini returned a full document — compile it as-is
         source = latex_code
     elif sections:
-        # Gemini returned sections without a document wrapper — build one
         source = _wrap_sections_in_template(sections)
     else:
-        # Last resort: wrap whatever raw text we have
         source = _wrap_plain_text(latex_code)
 
-    # ── Step 2: Write .tex to a temp dir and compile ──
+    # ── Step 3: Write .tex to a temp dir and compile ──
     with tempfile.TemporaryDirectory() as tmpdir:
         tex_path = os.path.join(tmpdir, "output.tex")
         pdf_path = os.path.join(tmpdir, "output.pdf")
@@ -48,24 +77,23 @@ def generate_pdf(latex_code: str, sections: list) -> bytes:
         for _ in range(2):
             result = subprocess.run(
                 [
-                    "pdflatex",
-                    "-interaction=nonstopmode",   # don't pause on errors
+                    pdflatex_bin,
+                    "-interaction=nonstopmode",
                     "-output-directory", tmpdir,
                     tex_path
                 ],
                 capture_output=True,
                 text=True,
-                timeout=60                        # safety timeout (seconds)
+                timeout=60
             )
 
-        # ── Step 3: Check output exists ──
+        # ── Step 4: Check output exists ──
         if not os.path.exists(pdf_path):
-            # Dump pdflatex log for debugging
             log_path = os.path.join(tmpdir, "output.log")
             log_text = ""
             if os.path.exists(log_path):
                 with open(log_path, "r", encoding="utf-8", errors="ignore") as lf:
-                    log_text = lf.read()[-3000:]   # last 3000 chars is usually the relevant error
+                    log_text = lf.read()[-3000:]
 
             raise RuntimeError(
                 f"pdflatex failed — PDF not produced.\n"
@@ -73,7 +101,7 @@ def generate_pdf(latex_code: str, sections: list) -> bytes:
                 f"LOG (tail):\n{log_text}"
             )
 
-        # ── Step 4: Read and return PDF bytes ──
+        # ── Step 5: Read and return PDF bytes ──
         with open(pdf_path, "rb") as f:
             return f.read()
 
